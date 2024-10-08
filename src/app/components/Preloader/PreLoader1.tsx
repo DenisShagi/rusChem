@@ -21,7 +21,7 @@ function PreLoader1() {
           setData(json);
           setDone(true);
         });
-    }, 2000);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, []);

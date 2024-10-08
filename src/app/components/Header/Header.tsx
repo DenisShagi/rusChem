@@ -1,14 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
+import { useAuth } from '../AuthContext/AuthContext'; 
+
+axios.defaults.baseURL = 'http://172.16.3.40:8083';
 
 const Header: React.FC = () => {
+  const { login } = useAuth(); 
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [credentials, setCredentials] = useState({ usr: '', pwd: '' });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -18,10 +23,11 @@ const Header: React.FC = () => {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post('/api/login', credentials);
+      const response = await axios.post('/api/user/login', credentials); 
       console.log('Login successful:', response.data);
-      setShowLogin(false); // Закрываем форму после успешного входа
-      // Здесь вы можете добавить логику для сохранения токена или состояния входа
+      login(response.data.token); 
+      setSuccessMessage('Авторизация успешна!');
+      setShowLogin(false);
     } catch (err) {
       setError('Неверные учетные данные. Попробуйте снова.');
     }
@@ -31,14 +37,23 @@ const Header: React.FC = () => {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post('/api/register', credentials);
+      const response = await axios.post('/register', credentials); 
       console.log('Registration successful:', response.data);
-      setShowRegister(false); // Закрываем форму после успешной регистрации
-      // Здесь вы можете добавить логику для перенаправления пользователя или входа
+      setSuccessMessage('Регистрация успешна! Пожалуйста, войдите.');
+      setShowRegister(false); 
     } catch (err) {
       setError('Ошибка регистрации. Попробуйте снова.');
     }
   };
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   return (
     <header className="bg-gray-800 text-white p-4">
@@ -76,6 +91,13 @@ const Header: React.FC = () => {
         </nav>
       </div>
 
+      {/* Успешное сообщение */}
+      {successMessage && (
+        <div className="fixed top-0 left-0 w-full flex items-center justify-center bg-green-500 text-white p-4">
+          {successMessage}
+        </div>
+      )}
+
       {/* Форма входа */}
       {showLogin && (
         <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
@@ -83,19 +105,19 @@ const Header: React.FC = () => {
             <h2 className="text-2xl mb-4">Вход</h2>
             {error && <p className="text-red-500">{error}</p>}
             <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={credentials.email}
+              type="text"
+              name="usr"
+              placeholder="Логин"
+              value={credentials.usr}
               onChange={handleChange}
               className="border p-2 mb-2 w-full text-blue-500"
               required
             />
             <input
               type="password"
-              name="password"
+              name="pwd"
               placeholder="Пароль"
-              value={credentials.password}
+              value={credentials.pwd}
               onChange={handleChange}
               className="border p-2 mb-4 w-full text-blue-500"
               required
@@ -121,19 +143,19 @@ const Header: React.FC = () => {
             <h2 className="text-2xl mb-4">Регистрация</h2>
             {error && <p className="text-red-500">{error}</p>}
             <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={credentials.email}
+              type="text"
+              name="usr"
+              placeholder="Логин"
+              value={credentials.usr}
               onChange={handleChange}
               className="border p-2 mb-2 w-full"
               required
             />
             <input
               type="password"
-              name="password"
+              name="pwd"
               placeholder="Пароль"
-              value={credentials.password}
+              value={credentials.pwd}
               onChange={handleChange}
               className="border p-2 mb-4 w-full"
               required
