@@ -4,7 +4,7 @@ import Link from 'next/link';
 const HeroSection: React.FC = () => {
   return (
     <section className="relative bg-blue-900 text-white h-screen flex items-center justify-center">
-      {/* Фоновое изображение */}
+
       <div className="absolute inset-0 z-0">
         <Image
           src="/factory-background.jpg" // Путь к твоему изображению фона
