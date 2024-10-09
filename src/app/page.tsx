@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Preloader1 from './components/Preloader/PreLoader1';
-import Header from './components/Header/Header';
-import HeroSection from './components/HeroSection/HeroSection';
+import Preloader1 from '../components/Preloader/PreLoader1';
+import Header from '../components/Header/Header';
+import HeroSection from '../components/HeroSection/HeroSection';
 
 const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
