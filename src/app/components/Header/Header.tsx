@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import axios from 'axios';
 import { useAuth } from '../AuthContext/AuthContext'; 
 
@@ -14,6 +15,13 @@ const Header: React.FC = () => {
   const [credentials, setCredentials] = useState({ usr: '', pwd: '' });
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [language, setLanguage] = useState('EN'); 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Управление выпадающим меню
+
+  const handleLanguageChange = (lang: string) => {
+    setLanguage(lang);
+    setIsDropdownOpen(false); // Закрываем меню после выбора языка
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -24,12 +32,19 @@ const Header: React.FC = () => {
     setError('');
     try {
       const response = await axios.post('/api/user/login', credentials); 
-      console.log('Login successful:', response.data);
-      login(response.data.token); 
-      setSuccessMessage('Авторизация успешна!');
-      setShowLogin(false);
+      if (response.status === 200) {
+        login(response.data.token);
+        setSuccessMessage('Авторизация успешна!');
+        setShowLogin(false);
+      } else {
+        setError('Ошибка авторизации. Попробуйте снова.');
+      }
     } catch (err) {
-      setError('Неверные учетные данные. Попробуйте снова.');
+      if (axios.isAxiosError(err)) {
+        setError('Ошибка сети. Попробуйте снова позже.');
+      } else {
+        setError('Неизвестная ошибка. Попробуйте снова.');
+      }
     }
   };
 
@@ -38,7 +53,6 @@ const Header: React.FC = () => {
     setError('');
     try {
       const response = await axios.post('/register', credentials); 
-      console.log('Registration successful:', response.data);
       setSuccessMessage('Регистрация успешна! Пожалуйста, войдите.');
       setShowRegister(false); 
     } catch (err) {
@@ -56,39 +70,78 @@ const Header: React.FC = () => {
   }, [successMessage]);
 
   return (
-    <header className="bg-gray-800 text-white p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Завод Данных</h1>
-        <nav>
-          <ul className="flex space-x-4">
-            <li>
-              <Link href="/" className="relative group inline-block">
-                <span className="group-hover:text-green-400 transition duration-300 ease-in-out">Главная</span>
-                <span className="block w-full h-0.5 bg-green-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out mx-auto" />
-              </Link>
-            </li>
-            <li>
-              <Link href="/about" className="relative group inline-block">
-                <span className="group-hover:text-green-400 transition duration-300 ease-in-out">О нас</span>
-                <span className="block w-full h-0.5 bg-green-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out mx-auto" />
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className="relative group inline-block">
-                <span className="group-hover:text-green-400 transition duration-300 ease-in-out">Контакты</span>
-                <span className="block w-full h-0.5 bg-green-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out mx-auto" />
-              </Link>
-            </li>
-            <li>
-              <button
-                onClick={() => setShowLogin(true)}
-                className="hover:text-green-400"
-              >
-                Вход
-              </button>
-            </li>
-          </ul>
+    <header className="relative bg-white shadow-md fixed w-full z-50 top-0">
+      <div className="container mx-auto flex justify-between items-center p-4">
+        {/* Логотип */}
+        <Link href="/">
+          <Image 
+            src="/logo.png" 
+            alt="Logo" 
+            width={150} 
+            height={40} 
+            priority={true} // Для оптимизации LCP
+            className="cursor-pointer"
+          />
+        </Link>
+
+        {/* Навигационное меню */}
+        <nav className="flex space-x-6">
+          <Link href="/" className="hover:text-orange-500">Home</Link>
+          <Link href="/services" className="hover:text-orange-500">Services</Link>
+          <Link href="/about" className="hover:text-orange-500">About Us</Link>
+          <Link href="/projects" className="hover:text-orange-500">Projects</Link>
+          <Link href="/contact" className="hover:text-orange-500">Contact</Link>
         </nav>
+
+        {/* Контейнер для кнопок */}
+        <div className="flex items-center space-x-4">
+          {/* Смена языка */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="hover:text-orange-500"
+            >
+              {language} <span className="ml-1">▼</span>
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-20 bg-white border border-gray-300 rounded shadow-lg">
+                <button 
+                  onClick={() => handleLanguageChange('EN')} 
+                  className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                >
+                  EN
+                </button>
+                <button 
+                  onClick={() => handleLanguageChange('DE')} 
+                  className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                >
+                  DE
+                </button>
+                <button 
+                  onClick={() => handleLanguageChange('FR')} 
+                  className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                >
+                  FR
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Кнопка "Contact" */}
+          <Link href="/contact">
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
+              Contact
+            </button>
+          </Link>
+
+          {/* Кнопка входа */}
+          <button
+            onClick={() => setShowLogin(true)}
+            className="hover:text-orange-500"
+          >
+            Вход
+          </button>
+        </div>
       </div>
 
       {/* Успешное сообщение */}
